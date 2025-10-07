@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JalRakshak - AI-Powered Water Health Monitoring Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0/dist/chartjs-plugin-streaming.min.js"></script>
+    <style>
+        :root {
+            --primary-teal: #0d9488;
+            --primary-blue: #0369a1;
+            --danger-red: #dc2626;
+            --warning-amber: #d97706;
+            --success-green: #059669;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: all 0.5s ease;
+        }
+
+        .dark body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        /* Enhanced Glassmorphism */
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.5rem;
+        }
+        .dark .glassmorphism {
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Advanced Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.7);
+            }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 30px 10px rgba(13, 148, 136, 0.3);
+            }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 3s infinite;
+        }
+
+        .slide-in {
+            animation: slideIn 0.8s ease-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0d9488;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0f766e;
+        }
+
+        /* Map Styles */
+        #water-quality-map {
+            height: 500px;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .dark #water-quality-map {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        /* Risk Indicators */
+        .risk-high { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .risk-medium { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .risk-low { background: linear-gradient(135deg, #10b981, #059669); }
+        .risk-unknown { background: linear-gradient(135deg, #6b7280, #4b5563); }
+
+        .risk-pulse {
+            animation: riskPulse 2s infinite;
+        }
+        @keyframes riskPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Enhanced Cards */
+        .feature-card {
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        }
+        .dark .feature-card {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        .dark .skeleton {
+            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Notification System */
+        .notification {
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* Voice Interface */
+        .voice-pulse {
+            animation: voicePulse 1.5s infinite;
+        }
+        @keyframes voicePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Improved text visibility in dark mode */
+        .dark .text-slate-800 {
+            color: #e2e8f0;
+        }
+        
+        .dark .text-slate-600 {
+            color: #cbd5e1;
+        }
+        
+        .dark .bg-white {
+            background-color: #1e293b;
+        }
+        
+        .dark .bg-slate-100 {
+            background-color: #334155;
+        }
+        
+        /* Team Section Styles */
+        .team-card {
+            transition: all 0.3s ease;
+        }
+        .team-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .dark .team-card:hover {
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        /* Contact Form Styles */
+        .contact-input {
+            transition: all 0.3s ease;
+        }
+        .contact-input:focus {
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-teal-50 dark:from-slate-900 dark:to-slate-800 text-slate-800 dark:text-slate-200">
+    <!-- Enhanced Navigation -->
+    <header class="fixed top-0 w-full z-50">
+        <nav class="glassmorphism mx-4 mt-4 rounded-2xl shadow-2xl">
+            <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+                <a href="#hero" class="flex items-center space-x-3 group">
+                    <div class="p-2 bg-teal-500 rounded-xl group-hover:scale-110 transition-transform">
+                        <span class="text-2xl">💧</span>
+                    </div>
+                    <div>
+                        <div class="text-xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">JalRakshak</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Protecting Lives, Preserving Water</div>
+                    </div>
+                </a>
+                
+                <div class="hidden lg:flex items-center space-x-8">
+                    <a href="#dashboard" class="nav-link group relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-700/50">
+                        <span class="flex items-center space-x-2">
+                            <span>📊</span>
+                            <span>Live Dashboard</span>
+                        </span>
+                        <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-teal-500 group-hover:w-full transition-all duration-300"></div>
+                    </a>
+                    <a href="#water-map" class="nav-link group relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-700/50">
+                        <span class="flex items-center space-x-2">
+                            <span>🗺️</span>
+                            <span>Water Map</span>
+                        </span>
+                        <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300"></div>
+                    </a>
+                    <a href="#ai-assistant" class="nav-link group relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-700/50">
+                        <span class="flex items-center space-x-2">
+                            <span>🤖</span>
+                            <span>AI Assistant</span>
+                        </span>
+                        <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-purple-500 group-hover:w-full transition-all duration-300"></div>
+                    </a>
+                    <a href="#team" class="nav-link group relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-700/50">
+                        <span class="flex items-center space-x-2">
+                            <span>👥</span>
+                            <span>Our Team</span>
+                        </span>
+                        <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-500 group-hover:w-full transition-all duration-300"></div>
+                    </a>
+                    <a href="#contact" class="nav-link group relative px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/50 dark:hover:bg-slate-700/50">
+                        <span class="flex items-center space-x-2">
+                            <span>📞</span>
+                            <span>Get in Touch</span>
+                        </span>
+                        <div class="absolute bottom-0 left-0 w-0 h-0.5 bg-green-500 group-hover:w-full transition-all duration-300"></div>
+                    </a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <!-- Voice Command Button -->
+                    <button id="voice-command-btn" class="p-2 rounded-lg bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm hover:scale-110 transition-transform voice-pulse" title="Voice Command">
+                        <span class="text-xl">🎤</span>
+                    </button>
+                    
+                    <!-- Language Selector -->
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm">
+                            <span>🌐</span>
+                            <span class="text-sm">EN</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm hover:scale-110 transition-transform">
+                        <span class="text-xl">🌙</span>
+                    </button>
+
+                    <!-- Mobile Menu -->
+                    <button id="mobile-menu-button" class="lg:hidden p-2 rounded-lg bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm">
+                        <span class="text-xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="min-h-screen relative overflow-hidden flex items-center justify-center pt-20">
+        <!-- Animated Background -->
+        <div class="absolute inset-0">
+            <div class="absolute inset-0 bg-gradient-to-br from-teal-400/20 via-blue-400/20 to-cyan-400/20"></div>
+            <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-teal-300/30 rounded-full blur-3xl float-animation"></div>
+            <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-300/30 rounded-full blur-3xl float-animation" style="animation-delay: 2s;"></div>
+        </div>
+
+        <div class="relative z-10 container mx-auto px-6 text-center">
+            <div class="slide-in">
+                <h1 class="text-6xl md:text-8xl font-black mb-6 bg-gradient-to-r from-teal-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                    JalRakshak
+                </h1>
+                
+                <div id="rotating-subtitle" class="text-2xl md:text-4xl font-semibold text-slate-700 dark:text-slate-300 mb-8 h-12">
+                    AI-Powered Water Safety
+                </div>
+
+                <p class="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-12 max-w-4xl mx-auto leading-relaxed">
+                    Transforming rural healthcare through real-time water quality monitoring and predictive outbreak prevention
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                    <a href="#dashboard" class="group relative overflow-hidden bg-gradient-to-r from-teal-500 to-blue-500 text-white font-bold py-4 px-8 rounded-2xl shadow-2xl pulse-glow hover:scale-105 transition-all duration-300">
+                        <span class="relative z-10">🚀 Get Live Demo</span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-teal-600 to-blue-600 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></div>
+                    </a>
+                    
+                    <a href="#water-map" class="group bg-white/80 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 font-bold py-4 px-8 rounded-2xl shadow-xl backdrop-blur-sm border border-white/20 hover:scale-105 transition-all duration-300">
+                        <span class="flex items-center space-x-2">
+                            <span>🗺️</span>
+                            <span>Explore Water Map</span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- Live Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-2xl mx-auto">
+                    <div class="text-center p-6 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl">
+                        <div class="text-3xl font-bold text-teal-600">42</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-400">Villages Protected</div>
+                    </div>
+                    <div class="text-center p-6 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl">
+                        <div class="text-3xl font-bold text-blue-600">1.2K</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-400">Lives Impacted</div>
+                    </div>
+                    <div class="text-center p-6 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl">
+                        <div class="text-3xl font-bold text-green-600">94%</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-400">Alert Accuracy</div>
+                    </div>
+                    <div class="text-center p-6 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl">
+                        <div class="text-3xl font-bold text-purple-600">5min</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-400">Avg Response Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+            <div class="animate-bounce">
+                <div class="w-6 h-10 border-2 border-slate-400 rounded-full flex justify-center">
+                    <div class="w-1 h-3 bg-slate-400 rounded-full mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced Water Quality Map Section -->
+    <section id="water-map" class="py-20 relative">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    🗺️ Live Water Quality Intelligence
+                </h2>
+                <p class="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
+                    Real-time monitoring across India with predictive risk analysis and instant alert systems
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-4 gap-8 mb-12">
+                <div class="lg:col-span-3">
+                    <div class="glassmorphism p-1 rounded-2xl">
+                        <div id="water-quality-map"></div>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Risk Legend -->
+                    <div class="glassmorphism p-6 rounded-2xl">
+                        <h4 class="font-bold text-lg mb-4 flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-gradient-to-r from-teal-500 to-blue-500 mr-2"></span>
+                            Water Safety Legend
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-3 rounded-lg risk-high risk-pulse">
+                                <span class="text-white font-semibold">Critical</span>
+                                <span class="text-white text-sm">>8.5 pH / <6.5 pH</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-lg risk-medium">
+                                <span class="text-white font-semibold">Moderate</span>
+                                <span class="text-white text-sm">7.5-8.5 pH</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 rounded-lg risk-low">
+                                <span class="text-white font-semibold">Safe</span>
+                                <span class="text-white text-sm">6.5-7.5 pH</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Summary -->
+                    <div class="glassmorphism p-6 rounded-2xl">
+                        <h4 class="font-bold text-lg mb-4 flex items-center text-blue-600">
+                            <span class="text-xl mr-2">🤖</span>
+                            AI Summary
+                        </h4>
+                        <div id="ai-summary-content" class="space-y-3">
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Click below to generate AI analysis of current water quality status.</p>
+                            <button id="generate-map-summary-btn" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-2 px-4 rounded-lg shadow transition-all duration-300 transform hover:scale-105">
+                                Generate AI Summary
+                            </button>
+                            <div id="map-summary-container" class="hidden mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <!-- Summary content will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Critical Alerts -->
+                    <div class="glassmorphism p-6 rounded-2xl">
+                        <h4 class="font-bold text-lg mb-4 flex items-center text-red-600">
+                            <span class="text-xl mr-2">🚨</span>
+                            Critical Alerts
+                        </h4>
+                        <div id="critical-alerts-list" class="space-y-3 max-h-60 overflow-y-auto">
+                            <!-- Alerts populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Statistics -->
+            <div class="grid md:grid-cols-4 gap-6">
+                <div class="feature-card p-6 rounded-2xl text-center group cursor-pointer">
+                    <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">💧</div>
+                    <div class="text-2xl font-bold text-teal-600 group-hover:text-teal-700">78%</div>
+                    <div class="text-sm text-slate-600 dark:text-slate-400">Safe Water Sources</div>
+                </div>
+                <div class="feature-card p-6 rounded-2xl text-center group cursor-pointer">
+                    <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">🔄</div>
+                    <div class="text-2xl font-bold text-blue-600 group-hover:text-blue-700">42</div>
+                    <div class="text-sm text-slate-600 dark:text-slate-400">Active Sensors</div>
+                </div>
+                <div class="feature-card p-6 rounded-2xl text-center group cursor-pointer">
+                    <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">📱</div>
+                    <div class="text-2xl font-bold text-green-600 group-hover:text-green-700">92%</div>
+                    <div class="text-sm text-slate-600 dark:text-slate-400">Alert Delivery Rate</div>
+                </div>
+                <div class="feature-card p-6 rounded-2xl text-center group cursor-pointer">
+                    <div class="text-4xl mb-4 group-hover:scale-110 transition-transform">⏱️</div>
+                    <div class="text-2xl font-bold text-purple-600 group-hover:text-purple-700">3.2s</div>
+                    <div class="text-sm text-slate-600 dark:text-slate-400">Avg. Response Time</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced Dashboard Section -->
+    <section id="dashboard" class="py-20 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-900">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    📊 Real-Time Health Intelligence
+                </h2>
+                <p class="text-xl text-slate-600 dark:text-slate-400 mb-8">
+                    Live monitoring with predictive analytics and AI-powered insights
+                </p>
+                
+                <!-- Live Mode Toggle -->
+                <div class="inline-flex items-center gap-4 p-4 glassmorphism rounded-2xl">
+                    <span class="text-slate-600 dark:text-slate-400">📁 Static Data</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="live-mode-toggle" class="sr-only peer">
+                        <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-slate-600 peer-checked:bg-gradient-to-r peer-checked:from-teal-500 peer-checked:to-blue-500"></div>
+                    </label>
+                    <span class="font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">📡 Live Mode</span>
+                </div>
+            </div>
+
+            <!-- KPI Dashboard -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="feature-card p-6 rounded-2xl text-center group">
+                    <div class="text-3xl mb-4">⏱️</div>
+                    <h3 class="font-semibold text-lg mb-2">Time-to-Alert</h3>
+                    <div class="kpi-number text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent" data-target="5">&lt; 5 Min</div>
+                </div>
+                <div class="feature-card p-6 rounded-2xl text-center group">
+                    <div class="text-3xl mb-4">🏠</div>
+                    <h3 class="font-semibold text-lg mb-2">Community Reach</h3>
+                    <div class="kpi-number text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent" data-target="1250">0+</div>
+                </div>
+                <div class="feature-card p-6 rounded-2xl text-center group">
+                    <div class="text-3xl mb-4">📝</div>
+                    <h3 class="font-semibold text-lg mb-2">Issues Resolved</h3>
+                    <div class="kpi-number text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent" data-target="82">0</div>
+                </div>
+                <div class="feature-card p-6 rounded-2xl text-center group">
+                    <div class="text-3xl mb-4">🛡️</div>
+                    <h3 class="font-semibold text-lg mb-2">Outbreak Reduction</h3>
+                    <div class="kpi-number text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent" data-target="34">0%</div>
+                </div>
+            </div>
+
+            <!-- Advanced Analytics -->
+            <div class="glassmorphism p-8 rounded-3xl mb-12">
+                <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
+                    <h3 class="text-2xl font-bold">Disease Prevention Analytics</h3>
+                    <div id="health-score" class="text-center">
+                        <div class="relative w-24 h-24">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                <path class="text-slate-200 dark:text-slate-700" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+                                <path id="health-score-ring" class="text-green-500 transition-all duration-1000 ease-out" stroke-linecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="85, 100"></path>
+                            </svg>
+                            <div id="health-score-text" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl font-bold">85%</div>
+                        </div>
+                        <p class="text-sm mt-2 text-slate-600 dark:text-slate-400">Community Health Score</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="impactChart"></canvas>
+                </div>
+                
+                <div id="badges-container" class="mt-6 flex justify-center items-center gap-4 h-8">
+                    <!-- Badges populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- AI Summary Section -->
+            <div class="glassmorphism p-8 rounded-3xl">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-bold mb-4">🤖 AI Health Intelligence</h3>
+                    <p class="text-slate-600 dark:text-slate-400">Get intelligent insights and predictive analysis</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <button id="generate-summary-btn" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl flex items-center justify-center space-x-3">
+                            <span>✨</span>
+                            <span>Generate AI Summary</span>
+                        </button>
+                        
+                        <div id="summary-container" class="mt-6 p-6 bg-white/50 dark:bg-slate-700/50 rounded-2xl hidden">
+                            <h4 class="font-bold mb-4 text-lg">AI Health Alert Summary:</h4>
+                            <div id="summary-content" class="space-y-3">
+                                <!-- Summary content populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Voice Assistant -->
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-6 rounded-2xl text-white">
+                        <h4 class="font-bold mb-4 text-lg flex items-center">
+                            <span class="text-xl mr-2">🎤</span>
+                            Voice Assistant
+                        </h4>
+                        <p class="mb-4 text-blue-100">Get instant help using voice commands</p>
+                        <button id="voice-assistant-btn" class="w-full bg-white/20 backdrop-blur-sm py-3 px-4 rounded-xl border border-white/30 flex items-center justify-center space-x-3 hover:bg-white/30 transition-all voice-pulse">
+                            <span class="text-xl">🎤</span>
+                            <span>Start Voice Command</span>
+                        </button>
+                        <div id="voice-status" class="mt-3 text-sm text-blue-100 text-center"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced AI Assistant Section -->
+    <section id="ai-assistant" class="py-20 bg-white dark:bg-slate-900">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    🤖 AI Health Companion
+                </h2>
+                <p class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                    Get instant, reliable health guidance for water-borne diseases with our intelligent assistant
+                </p>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <div class="glassmorphism p-1 rounded-3xl">
+                    <div id="chat-box" class="h-96 overflow-y-auto p-6 space-y-4 rounded-3xl">
+                        <!-- Chat messages populated by JavaScript -->
+                    </div>
+                    
+                    <div id="typing-indicator" class="p-4 hidden items-center gap-3 bg-white/50 dark:bg-slate-700/50 rounded-b-3xl">
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style="animation-delay: 0s;"></div>
+                            <div class="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                            <div class="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style="animation-delay: 0.4s;"></div>
+                        </div>
+                        <span class="text-sm text-slate-600 dark:text-slate-400">AI is analyzing your symptoms...</span>
+                    </div>
+
+                    <div class="p-4 bg-white/80 dark:bg-slate-800/80 rounded-b-3xl">
+                        <div class="flex gap-3">
+                            <input type="text" id="symptom-input" 
+                                   class="flex-grow p-4 border border-slate-200 dark:border-slate-600 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm"
+                                   placeholder="Describe your symptoms or ask about water safety...">
+                            <button id="get-advice-btn" class="bg-gradient-to-r from-teal-500 to-blue-500 text-white p-4 rounded-2xl shadow-lg hover:scale-105 transition-transform">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <button class="quick-symptom text-xs bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-symptom="diarrhea fever">Diarrhea + Fever</button>
+                            <button class="quick-symptom text-xs bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-symptom="vomiting stomach pain">Vomiting + Stomach Pain</button>
+                            <button class="quick-symptom text-xs bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-full hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" data-symptom="water safety">Is my water safe?</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="py-20 bg-gradient-to-br from-slate-50 to-teal-50 dark:from-slate-800 dark:to-slate-900">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    👥 Meet Our Team
+                </h2>
+                <p class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                    The passionate minds behind JalRakshak, dedicated to making water safety accessible to all
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Team Member 1 -->
+                <div class="team-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-16 h-16 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            PM
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Parag Sanjay Marathe</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Team Lead & Founder</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        Full-stack developer with expertise in AI integration and project management.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 px-2 py-1 rounded">AI/ML</span>
+                        <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Leadership</span>
+                        <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">Web Dev</span>
+                    </div>
+                </div>
+
+                <!-- Team Member 2 -->
+                <div class="team-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            VT
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Vaibhav Tanaji Thite</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Backend Developer</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        Backend specialist with expertise in database management and API development.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-2 py-1 rounded">Backend</span>
+                        <span class="text-xs bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-2 py-1 rounded">Database</span>
+                        <span class="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">API Dev</span>
+                    </div>
+                </div>
+
+                <!-- Team Member 3 -->
+                <div class="team-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            SG
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Shubham Ravindra Gotpagar</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Frontend Developer</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        UI/UX expert with a focus on creating intuitive and responsive user interfaces.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">Frontend</span>
+                        <span class="text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-1 rounded">UI/UX</span>
+                        <span class="text-xs bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 px-2 py-1 rounded">Responsive</span>
+                    </div>
+                </div>
+
+                <!-- Team Member 4 -->
+                <div class="team-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            DB
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Devika Kaviraj Bhoye</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Data Scientist</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        Data analysis expert specializing in predictive modeling and statistical analysis.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">Data Science</span>
+                        <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">Analytics</span>
+                        <span class="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">Statistics</span>
+                    </div>
+                </div>
+
+                <!-- Team Member 5 -->
+                <div class="team-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-16 h-16 bg-gradient-to-r from-rose-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            RS
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Roshani Singh</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">IoT Specialist</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        Hardware expert focused on sensor integration and IoT device management.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-rose-100 dark:bg-rose-900 text-rose-800 dark:text-rose-200 px-2 py-1 rounded">IoT</span>
+                        <span class="text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded">Hardware</span>
+                        <span class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 px-2 py-1 rounded">Sensors</span>
+                    </div>
+                </div>
+
+                <!-- Team Member 6 -->
+                <div class="team-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            RS
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Rupali Singh</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-400">Community Outreach</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        Community engagement specialist with expertise in rural implementation strategies.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="text-xs bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200 px-2 py-1 rounded">Outreach</span>
+                        <span class="text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 px-2 py-1 rounded">Training</span>
+                        <span class="text-xs bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200 px-2 py-1 rounded">Implementation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white dark:bg-slate-900">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-5xl font-bold mb-6 bg-gradient-to-r from-slate-800 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                    📞 Get In Touch
+                </h2>
+                <p class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                    Join our mission to make safe water accessible to everyone. Sign up to stay updated.
+                </p>
+            </div>
+
+            <div class="max-w-2xl mx-auto">
+                <div class="glassmorphism p-8 rounded-3xl">
+                    <form id="contact-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
+                                <input type="text" id="name" name="name" class="w-full p-4 border border-slate-200 dark:border-slate-600 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm contact-input" placeholder="Enter your full name" required>
+                            </div>
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
+                                <input type="email" id="email" name="email" class="w-full p-4 border border-slate-200 dark:border-slate-600 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm contact-input" placeholder="Enter your email" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="organization" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Organization (Optional)</label>
+                            <input type="text" id="organization" name="organization" class="w-full p-4 border border-slate-200 dark:border-slate-600 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm contact-input" placeholder="Enter your organization name">
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Message</label>
+                            <textarea id="message" name="message" rows="4" class="w-full p-4 border border-slate-200 dark:border-slate-600 rounded-2xl focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white/50 dark:bg-slate-700/50 backdrop-blur-sm contact-input" placeholder="Tell us about your interest in JalRakshak"></textarea>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="newsletter" name="newsletter" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded">
+                            <label for="newsletter" class="ml-2 block text-sm text-slate-700 dark:text-slate-300">
+                                Subscribe to our newsletter for updates
+                            </label>
+                        </div>
+                        <button type="submit" class="w-full bg-gradient-to-r from-teal-500 to-blue-500 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl">
+                            Submit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced Footer -->
+    <footer class="bg-gradient-to-r from-slate-800 to-slate-900 text-white py-16">
+        <div class="container mx-auto px-6">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 bg-gradient-to-r from-teal-400 to-blue-400 bg-clip-text text-transparent">JalRakshak</h3>
+                    <p class="text-slate-300 mb-4">Transforming rural healthcare through AI-powered water safety monitoring.</p>
+                    <div class="flex space-x-4">
+                        <div class="p-2 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">📘</div>
+                        <div class="p-2 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">📱</div>
+                        <div class="p-2 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer">🐦</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">Quick Links</h4>
+                    <div class="space-y-2">
+                        <a href="#dashboard" class="block text-slate-300 hover:text-white transition-colors">📊 Dashboard</a>
+                        <a href="#water-map" class="block text-slate-300 hover:text-white transition-colors">🗺️ Water Map</a>
+                        <a href="#ai-assistant" class="block text-slate-300 hover:text-white transition-colors">🤖 AI Assistant</a>
+                        <a href="#team" class="block text-slate-300 hover:text-white transition-colors">👥 Our Team</a>
+                        <a href="#contact" class="block text-slate-300 hover:text-white transition-colors">📞 Get in Touch</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">Resources</h4>
+                    <div class="space-y-2">
+                        <a href="#" class="block text-slate-300 hover:text-white transition-colors">📚 Research Papers</a>
+                        <a href="#" class="block text-slate-300 hover:text-white transition-colors">🔬 Water Safety Guide</a>
+                        <a href="#" class="block text-slate-300 hover:text-white transition-colors">🏥 Health Resources</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">Contact</h4>
+                    <div class="space-y-2 text-slate-300">
+                        <div>📧 hello@jalrakshak.org</div>
+                        <div>📞 +91 98765 43210</div>
+                        <div>🏢 Mumbai, India</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-700 pt-8 text-center">
+                <p class="text-slate-400">
+                    © 2025 Team Hack_Street | Smart India Hackathon | 
+                    <span class="text-slate-300">"Saving Lives, One Drop at a Time"</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Enhanced FAB -->
+    <div class="fixed bottom-6 right-6 z-40 space-y-3">
+        <div id="fab-menu" class="space-y-3 hidden">
+            <button class="fab-action w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform" data-action="top" title="Scroll to Top">
+                🔝
+            </button>
+            <button class="fab-action w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform" data-action="dashboard" title="Go to Dashboard">
+                📊
+            </button>
+            <button class="fab-action w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform" data-action="map" title="View Water Map">
+                🗺️
+            </button>
+        </div>
+        <button id="fab" class="w-14 h-14 bg-gradient-to-r from-teal-500 to-blue-500 text-white rounded-full shadow-2xl flex items-center justify-center text-xl hover:scale-110 transition-transform pulse-glow">
+            ⚡
+        </button>
+    </div>
+
+    <!-- Notifications Container -->
+    <div id="notifications-container" class="fixed top-20 right-6 z-50 space-y-3 w-80"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Comprehensive JavaScript for all enhanced features
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all components
+            initThemeSystem();
+            initWaterQualityMap();
+            initDashboard();
+            initAIAssistant();
+            initNavigation();
+            initNotifications();
+            initVoiceAssistant();
+            initContactForm();
+            initAnimations();
+        });
+
+        // Enhanced Theme System
+        function initThemeSystem() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            
+            const applyTheme = (theme) => {
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+                themeToggle.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+                localStorage.setItem('theme', theme);
+            };
+
+            applyTheme(savedTheme);
+            themeToggle.addEventListener('click', () => {
+                applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+            });
+        }
+
+        // Enhanced Water Quality Map
+        function initWaterQualityMap() {
+            const map = L.map('water-quality-map').setView([20.5937, 78.9629], 5);
+            
+            // Add multiple tile layers
+            const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                name: 'Street Map'
+            });
+            
+            const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                name: 'Satellite'
+            });
+            
+            // Add default layer
+            streetLayer.addTo(map);
+            
+            // Add layer control
+            const baseMaps = {
+                "Street Map": streetLayer,
+                "Satellite": satelliteLayer
+            };
+            
+            L.control.layers(baseMaps).addTo(map);
+
+            // Enhanced water quality data with realistic parameters
+            const waterQualityData = [
+                { lat: 19.0760, lng: 72.8777, name: "Mumbai", quality: "high", pH: 6.2, turbidity: 8.5, tds: 450, risk: "Critical contamination detected", population: 20.4, lastUpdate: "2 min ago" },
+                { lat: 28.6139, lng: 77.2090, name: "Delhi", quality: "medium", pH: 7.1, turbidity: 4.2, tds: 320, risk: "Moderate risk - boiling advised", population: 18.9, lastUpdate: "5 min ago" },
+                { lat: 12.9716, lng: 77.5946, name: "Bangalore", quality: "low", pH: 7.4, turbidity: 1.8, tds: 180, risk: "Water quality excellent", population: 12.3, lastUpdate: "1 min ago" },
+                { lat: 17.3850, lng: 78.4867, name: "Hyderabad", quality: "high", pH: 5.8, turbidity: 9.1, tds: 520, risk: "Critical: Unsafe for drinking", population: 9.7, lastUpdate: "3 min ago" },
+                { lat: 22.5726, lng: 88.3639, name: "Kolkata", quality: "medium", pH: 6.9, turbidity: 5.4, tds: 380, risk: "Treatment required before use", population: 14.6, lastUpdate: "7 min ago" },
+                { lat: 13.0827, lng: 80.2707, name: "Chennai", quality: "low", pH: 7.2, turbidity: 2.1, tds: 210, risk: "Within safe limits", population: 10.5, lastUpdate: "2 min ago" },
+                { lat: 26.9124, lng: 75.7873, name: "Jaipur", quality: "high", pH: 6.1, turbidity: 7.8, tds: 490, risk: "Immediate action required", population: 3.9, lastUpdate: "4 min ago" },
+                { lat: 23.0225, lng: 72.5714, name: "Ahmedabad", quality: "medium", pH: 7.0, turbidity: 4.8, tds: 340, risk: "Precautions advised", population: 7.6, lastUpdate: "6 min ago" }
+            ];
+
+            // Create custom icons
+            const createCustomIcon = (quality) => {
+                const color = quality === 'high' ? '#ef4444' : quality === 'medium' ? '#f59e0b' : '#10b981';
+                return L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+            };
+
+            // Add markers with enhanced popups
+            waterQualityData.forEach(location => {
+                const marker = L.marker([location.lat, location.lng], {
+                    icon: createCustomIcon(location.quality)
+                }).addTo(map);
+
+                const riskColor = location.quality === 'high' ? 'red' : location.quality === 'medium' ? 'orange' : 'green';
+                
+                marker.bindPopup(`
+                    <div class="w-80 p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 class="font-bold text-lg">${location.name}</h3>
+                            <span class="px-2 py-1 rounded text-white text-sm ${location.quality === 'high' ? 'bg-red-500' : location.quality === 'medium' ? 'bg-orange-500' : 'bg-green-500'}">
+                                ${location.quality === 'high' ? 'CRITICAL' : location.quality === 'medium' ? 'MODERATE' : 'SAFE'}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="text-center p-2 bg-slate-100 rounded">
+                                <div class="text-sm text-slate-600">pH Level</div>
+                                <div class="font-bold ${location.pH < 6.5 || location.pH > 8.5 ? 'text-red-600' : 'text-green-600'}">${location.pH}</div>
+                            </div>
+                            <div class="text-center p-2 bg-slate-100 rounded">
+                                <div class="text-sm text-slate-600">Turbidity</div>
+                                <div class="font-bold ${location.turbidity > 5 ? 'text-red-600' : 'text-green-600'}">${location.turbidity} NTU</div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded ${location.quality === 'high' ? 'bg-red-50 border border-red-200' : location.quality === 'medium' ? 'bg-orange-50 border border-orange-200' : 'bg-green-50 border border-green-200'}">
+                            <div class="text-sm font-semibold ${location.quality === 'high' ? 'text-red-800' : location.quality === 'medium' ? 'text-orange-800' : 'text-green-800'}">
+                                ${location.risk}
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 text-xs text-slate-500">
+                            📍 Population: ${location.population}M | ⏰ Updated: ${location.lastUpdate}
+                        </div>
+                    </div>
+                `);
+            });
+
+            updateCriticalAlerts(waterQualityData);
+
+            // AI Summary for Map
+            document.getElementById('generate-map-summary-btn').addEventListener('click', function() {
+                const container = document.getElementById('map-summary-container');
+                container.classList.remove('hidden');
+                container.innerHTML = `
+                    <div class="flex items-center justify-center py-4">
+                        <div class="loader"></div>
+                        <span class="ml-3">Generating AI analysis...</span>
+                    </div>
+                `;
+
+                // Simulate AI processing
+                setTimeout(() => {
+                    const criticalCount = waterQualityData.filter(loc => loc.quality === 'high').length;
+                    const safeCount = waterQualityData.filter(loc => loc.quality === 'low').length;
+                    
+                    container.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <div class="font-semibold text-blue-800 dark:text-blue-300">📊 Current Status</div>
+                                <div class="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                                    • ${criticalCount} regions with critical water quality
+                                    • ${safeCount} regions with safe drinking water
+                                    • ${waterQualityData.length - criticalCount - safeCount} regions require attention
+                                </div>
+                            </div>
+                            
+                            <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                <div class="font-semibold text-amber-800 dark:text-amber-300">⚠️ High Priority Areas</div>
+                                <div class="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                                    • Mumbai: pH levels critical, immediate action needed
+                                    • Hyderabad: High turbidity, filtration required
+                                </div>
+                            </div>
+                            
+                            <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <div class="font-semibold text-green-800 dark:text-green-300">✅ Safe Regions</div>
+                                <div class="text-sm text-green-700 dark:text-green-400 mt-1">
+                                    • Bangalore: Excellent water quality maintained
+                                    • Chennai: Within safe parameters
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }, 2000);
+            });
+
+            // Simulate real-time updates
+            setInterval(() => {
+                waterQualityData.forEach(loc => {
+                    if (Math.random() > 0.7) {
+                        loc.pH = (6.0 + Math.random() * 2.5).toFixed(1);
+                        loc.turbidity = (0.5 + Math.random() * 9.5).toFixed(1);
+                        loc.quality = loc.pH < 6.5 || loc.pH > 8.5 ? 'high' : loc.turbidity > 5 ? 'medium' : 'low';
+                        loc.lastUpdate = "Just now";
+                    }
+                });
+                updateCriticalAlerts(waterQualityData);
+            }, 10000);
+        }
+
+        function updateCriticalAlerts(data) {
+            const container = document.getElementById('critical-alerts-list');
+            const critical = data.filter(loc => loc.quality === 'high');
+            
+            container.innerHTML = critical.map(alert => `
+                <div class="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800">
+                    <div class="flex justify-between items-start">
+                        <div class="font-semibold text-red-700 dark:text-red-300">${alert.name}</div>
+                        <div class="text-xs text-red-600 dark:text-red-400">${alert.lastUpdate}</div>
+                    </div>
+                    <div class="text-sm text-red-600 dark:text-red-400 mt-1">${alert.risk}</div>
+                    <div class="text-xs text-red-500 dark:text-red-500 mt-2">
+                        pH: ${alert.pH} | Turbidity: ${alert.turbidity} NTU
+                    </div>
+                </div>
+            `).join('');
+
+            if (critical.length === 0) {
+                container.innerHTML = '<div class="text-center text-green-600 py-4">✅ All regions safe</div>';
+            }
+        }
+
+        // Enhanced Dashboard Initialization
+        function initDashboard() {
+            // KPI Counters
+            document.querySelectorAll('.kpi-number').forEach(el => {
+                const target = parseInt(el.dataset.target);
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        clearInterval(timer);
+                        el.textContent = `${target}${el.textContent.includes('+') ? '+' : ''}${el.textContent.includes('%') ? '%' : ''}`;
+                    } else {
+                        el.textContent = `${Math.ceil(current)}${el.textContent.includes('+') ? '+' : ''}${el.textContent.includes('%') ? '%' : ''}`;
+                    }
+                }, 40);
+            });
+
+            // Initialize Chart
+            const ctx = document.getElementById('impactChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Cholera', 'Typhoid', 'Hepatitis A', 'Diarrhea', 'Dysentery'],
+                    datasets: [{
+                        label: 'Cases Before',
+                        data: [120, 90, 75, 200, 60],
+                        backgroundColor: '#94a3b8',
+                        borderRadius: 8
+                    }, {
+                        label: 'Cases After',
+                        data: [45, 32, 28, 85, 22],
+                        backgroundColor: '#10b981',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Disease Reduction Impact (6 Months)'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Live Mode Toggle
+            document.getElementById('live-mode-toggle').addEventListener('change', function(e) {
+                if (e.target.checked) {
+                    // Simulate live data updates
+                    setInterval(() => {
+                        chart.data.datasets[1].data = chart.data.datasets[1].data.map(val => 
+                            Math.max(10, val + (Math.random() * 10 - 5))
+                        );
+                        chart.update();
+                        updateHealthScore();
+                    }, 3000);
+                }
+            });
+
+            // AI Summary Generator
+            document.getElementById('generate-summary-btn').addEventListener('click', async function() {
+                const container = document.getElementById('summary-container');
+                const content = document.getElementById('summary-content');
+                
+                container.classList.remove('hidden');
+                content.innerHTML = `
+                    <div class="flex items-center justify-center py-8">
+                        <div class="loader"></div>
+                        <span class="ml-3">Generating AI insights...</span>
+                    </div>
+                `;
+
+                // Simulate AI processing
+                setTimeout(() => {
+                    content.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <div class="font-semibold text-green-800 dark:text-green-300">✅ Positive Trends</div>
+                                <div class="text-sm text-green-700 dark:text-green-400 mt-1">
+                                    • 67% reduction in water-borne diseases since implementation
+                                    • 92% of alerts delivered within 5 minutes
+                                    • Community engagement increased by 45%
+                                </div>
+                            </div>
+                            
+                            <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                                <div class="font-semibold text-yellow-800 dark:text-yellow-300">⚠️ Areas Needing Attention</div>
+                                <div class="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                                    • Mumbai region showing elevated contamination levels
+                                    • 3 sensors need maintenance in Delhi sector
+                                    • Response time increased by 12% in rural areas
+                                </div>
+                            </div>
+                            
+                            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <div class="font-semibold text-blue-800 dark:text-blue-300">🎯 Recommended Actions</div>
+                                <div class="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                                    • Deploy mobile purification units in Mumbai
+                                    • Schedule sensor maintenance this week
+                                    • Increase community awareness in rural sectors
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }, 2000);
+            });
+
+            updateHealthScore();
+        }
+
+        function updateHealthScore() {
+            const score = 85 + Math.floor(Math.random() * 10);
+            const ring = document.getElementById('health-score-ring');
+            const text = document.getElementById('health-score-text');
+            
+            ring.style.strokeDasharray = `${score}, 100`;
+            text.textContent = `${score}%`;
+
+            // Update badges
+            const badgesContainer = document.getElementById('badges-container');
+            badgesContainer.innerHTML = '';
+            
+            if (score > 80) badgesContainer.innerHTML += '<span class="text-2xl" title="Excellent Water Safety">🏆</span>';
+            if (score > 70) badgesContainer.innerHTML += '<span class="text-2xl" title="Good Community Health">🌟</span>';
+            if (score > 90) badgesContainer.innerHTML += '<span class="text-2xl" title="Outstanding Performance">🚀</span>';
+        }
+
+        // Enhanced AI Assistant
+        function initAIAssistant() {
+            const chatBox = document.getElementById('chat-box');
+            const symptomInput = document.getElementById('symptom-input');
+            const getAdviceBtn = document.getElementById('get-advice-btn');
+            const typingIndicator = document.getElementById('typing-indicator');
+
+            // Quick symptom buttons
+            document.querySelectorAll('.quick-symptom').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    symptomInput.value = this.dataset.symptom;
+                    handleUserMessage();
+                });
+            });
+
+            function addMessage(text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+                messageDiv.innerHTML = `
+                    <div class="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+                        isUser 
+                            ? 'bg-gradient-to-r from-teal-500 to-blue-500 text-white' 
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
+                    } shadow-lg">
+                        ${text}
+                    </div>
+                `;
+                chatBox.appendChild(messageDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+
+            function handleUserMessage() {
+                const message = symptomInput.value.trim();
+                if (!message) return;
+
+                addMessage(message, true);
+                symptomInput.value = '';
+                typingIndicator.style.display = 'flex';
+
+                setTimeout(() => {
+                    typingIndicator.style.display = 'none';
+                    const responses = {
+                        'diarrhea fever': '🚨 <strong>Possible Cholera or Typhoid</strong><br>• Drink ORS immediately<br>• Seek medical attention within 24 hours<br>• Boil all drinking water<br>• Practice strict hygiene',
+                        'vomiting stomach pain': '⚠️ <strong>Possible Gastroenteritis</strong><br>• Rest and hydrate<br>• Avoid solid foods for 4-6 hours<br>• Use clean, boiled water<br>• Consult doctor if symptoms persist',
+                        'water safety': '💧 <strong>Water Safety Check</strong><br>• Boil water for 1 minute before use<br>• Use water purification tablets<br>• Store water in clean containers<br>• Test water monthly if possible',
+                        'default': '🤖 <strong>Health Assistant</strong><br>I understand you\'re concerned about water-related health issues. For accurate medical advice, please consult a healthcare professional. In the meantime, ensure you\'re drinking properly treated water and maintaining good hygiene practices.'
+                    };
+
+                    const response = responses[message.toLowerCase()] || responses['default'];
+                    addMessage(response);
+                }, 2000);
+            }
+
+            getAdviceBtn.addEventListener('click', handleUserMessage);
+            symptomInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleUserMessage();
+            });
+
+            // Initial welcome message
+            addMessage('👋 Hello! I\'m your AI Health Assistant. I can help with:<br>• Water-borne disease symptoms<br>• Water safety guidance<br>• Preventive health measures<br><br>How can I assist you today?');
+        }
+
+        // Enhanced Navigation
+        function initNavigation() {
+            const fab = document.getElementById('fab');
+            const fabMenu = document.getElementById('fab-menu');
+
+            fab.addEventListener('click', () => {
+                fabMenu.classList.toggle('hidden');
+                fab.style.transform = fabMenu.classList.contains('hidden') ? 'scale(1)' : 'scale(1.1)';
+            });
+
+            document.querySelectorAll('.fab-action').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.dataset.action;
+                    const sections = {
+                        top: 'hero',
+                        dashboard: 'dashboard',
+                        map: 'water-map'
+                    };
+                    
+                    document.getElementById(sections[action]).scrollIntoView({ 
+                        behavior: 'smooth' 
+                    });
+                    fabMenu.classList.add('hidden');
+                });
+            });
+
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        }
+
+        // Enhanced Notifications System
+        function initNotifications() {
+            function showNotification(message, type = 'info') {
+                const container = document.getElementById('notifications-container');
+                const notification = document.createElement('div');
+                const bgColor = type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500';
+                
+                notification.className = `notification p-4 rounded-lg shadow-2xl text-white ${bgColor} transform translate-x-full`;
+                notification.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xl">${type === 'error' ? '🚨' : type === 'success' ? '✅' : 'ℹ️'}</span>
+                            <div>${message}</div>
+                        </div>
+                        <button class="text-white hover:text-slate-200">✕</button>
+                    </div>
+                `;
+
+                container.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        container.removeChild(notification);
+                    }, 300);
+                }, 5000);
+
+                // Close button
+                notification.querySelector('button').addEventListener('click', () => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        container.removeChild(notification);
+                    }, 300);
+                });
+            }
+
+            // Show welcome notification
+            setTimeout(() => {
+                showNotification('Welcome to JalRakshak! Real-time water monitoring activated.', 'success');
+            }, 1000);
+
+            // Simulate occasional alerts
+            setInterval(() => {
+                if (Math.random() > 0.8) {
+                    showNotification('New water quality alert in monitored region', 'error');
+                }
+            }, 30000);
+        }
+
+        // Voice Assistant
+        function initVoiceAssistant() {
+            const voiceBtn = document.getElementById('voice-command-btn');
+            const voiceStatus = document.getElementById('voice-status');
+
+            voiceBtn.addEventListener('click', function() {
+                if (!('webkitSpeechRecognition' in window)) {
+                    showNotification('Voice recognition not supported in your browser', 'error');
+                    return;
+                }
+
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.start();
+                showNotification('🎤 Listening... Speak now', 'info');
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    
+                    // Simulate AI response
+                    setTimeout(() => {
+                        showNotification(`Voice command: "${transcript}" processed`, 'success');
+                        
+                        // Handle specific voice commands
+                        if (transcript.toLowerCase().includes('dashboard')) {
+                            document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+                        } else if (transcript.toLowerCase().includes('map')) {
+                            document.getElementById('water-map').scrollIntoView({ behavior: 'smooth' });
+                        } else if (transcript.toLowerCase().includes('assistant')) {
+                            document.getElementById('ai-assistant').scrollIntoView({ behavior: 'smooth' });
+                        } else if (transcript.toLowerCase().includes('team')) {
+                            document.getElementById('team').scrollIntoView({ behavior: 'smooth' });
+                        } else if (transcript.toLowerCase().includes('contact')) {
+                            document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
+                        } else if (transcript.toLowerCase().includes('top')) {
+                            document.getElementById('hero').scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }, 1000);
+                };
+
+                recognition.onerror = function() {
+                    showNotification('❌ Error listening to voice command', 'error');
+                };
+
+                recognition.onend = function() {
+                    setTimeout(() => {
+                        voiceBtn.classList.add('voice-pulse');
+                        voiceBtn.classList.remove('voice-pulse');
+                        void voiceBtn.offsetWidth;
+                        voiceBtn.classList.add('voice-pulse');
+                    }, 2000);
+                };
+            });
+        }
+
+        // Contact Form
+        function initContactForm() {
+            const contactForm = document.getElementById('contact-form');
+            
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData(contactForm);
+                const name = formData.get('name');
+                const email = formData.get('email');
+                
+                // Simulate form submission
+                showNotification(`Thank you ${name}! We'll contact you at ${email} soon.`, 'success');
+                
+                // Reset form
+                contactForm.reset();
+            });
+        }
+
+        // Enhanced Animations
+        function initAnimations() {
+            // Intersection Observer for scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('slide-in');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.feature-card, .glassmorphism, .team-card').forEach(el => {
+                observer.observe(el);
+            });
+
+            // Rotating subtitle
+            const subtitles = [
+                'AI-Powered Water Safety Monitoring',
+                'Real-Time Contamination Alerts',
+                'Predictive Outbreak Prevention',
+                'Community Health Protection'
+            ];
+            let currentSubtitle = 0;
+            const subtitleEl = document.getElementById('rotating-subtitle');
+
+            function rotateSubtitle() {
+                subtitleEl.style.opacity = '0';
+                setTimeout(() => {
+                    subtitleEl.textContent = subtitles[currentSubtitle];
+                    subtitleEl.style.opacity = '1';
+                    currentSubtitle = (currentSubtitle + 1) % subtitles.length;
+                }, 500);
+            }
+
+            setInterval(rotateSubtitle, 3000);
+        }
+    </script>
+</body>
+</html>
